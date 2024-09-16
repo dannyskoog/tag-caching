@@ -1,0 +1,33 @@
+name: Release Application
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  id-token: 'write'
+  contents: 'read'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Get cached dependencies
+        id: cached-dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+          key: dependencies-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+    
+      - name: Install dependencies
+        if: steps.cached-dependencies.outputs.cache-hit != 'true'
+        run: npm ci --no-audit
+        shell: bash
